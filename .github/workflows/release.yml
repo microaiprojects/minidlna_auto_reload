@@ -7,17 +7,9 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build ${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        arch: [amd64, arm64]
-        exclude:
-          - os: windows-latest
-            arch: arm64
-
+  build-all:
+    name: Build All Platforms
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -29,17 +21,17 @@ jobs:
       - name: Generate timestamp
         id: timestamp
         run: echo "timestamp=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
-        shell: bash
 
-      - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
+      - name: Build All
         run: |
-          GOOS=linux GOARCH=${{ matrix.arch }} CGO_ENABLED=0 go build -ldflags="-s -w" -o mini_dlna_updater_linux_${{ matrix.arch }}
-        
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          $env:GOOS="windows"; $env:GOARCH="${{ matrix.arch }}"; $env:CGO_ENABLED="0"; go build -ldflags="-s -w" -o mini_dlna_updater_windows_${{ matrix.arch }}.exe
+          # Linux AMD64
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o mini_dlna_updater_linux_amd64
+          
+          # Linux ARM64
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o mini_dlna_updater_linux_arm64
+          
+          # Windows AMD64
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o mini_dlna_updater_windows_amd64.exe
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
