@@ -26,6 +26,11 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -36,10 +41,13 @@ jobs:
         run: |
           $env:GOOS="windows"; $env:GOARCH="${{ matrix.arch }}"; $env:CGO_ENABLED="0"; go build -ldflags="-s -w" -o mini_dlna_updater_windows_${{ matrix.arch }}.exe
 
-      - name: Upload Release Asset
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: build-${{ steps.timestamp.outputs.timestamp }}
+          name: Automated Build ${{ steps.timestamp.outputs.timestamp }}
           files: |
             mini_dlna_updater_*
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
