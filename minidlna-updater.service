@@ -1,0 +1,13 @@
+[Unit]
+Description=MiniDLNA Directory Monitor
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/minidlna_updater -dir /path/to/your/media/directory
+Restart=always
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target

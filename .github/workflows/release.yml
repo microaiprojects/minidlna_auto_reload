@@ -1,0 +1,45 @@
+name: Release Builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        arch: [amd64, arm64]
+        exclude:
+          - os: windows-latest
+            arch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          GOOS=linux GOARCH=${{ matrix.arch }} CGO_ENABLED=0 go build -ldflags="-s -w" -o mini_dlna_updater_linux_${{ matrix.arch }}
+        
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          $env:GOOS="windows"; $env:GOARCH="${{ matrix.arch }}"; $env:CGO_ENABLED="0"; go build -ldflags="-s -w" -o mini_dlna_updater_windows_${{ matrix.arch }}.exe
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mini_dlna_updater_*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
